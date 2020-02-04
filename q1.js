@@ -1,6 +1,6 @@
 const event = {
-  startDate: '2019-04-11T09:00:00',
-  endDate: '2019-04-11T11:30:00',
+  startDate: '2019-04-13T09:00:00',
+  endDate: '2019-04-13T11:30:00',
   customer: '1234567890',
 };
 
@@ -11,6 +11,8 @@ const customer = {
     _id: 'qwertyuio',
     service: {
       name: 'Aide a l\'autonomie',
+      saturdaySurcharge: 10,
+      sundaySurcharge: 15,
     },
     versions: [
       { startDate: '2019-02-01T00:00:00', unitTTCPrice: 24 },
@@ -45,6 +47,11 @@ let event_price = function(event){
   let startDateObject = new Date(event.startDate);
   let endDateObject = new Date(event.endDate);
   let total = diff_minutes(startDateObject,endDateObject) / 60 * subscriptionCurentVersion(cus.subscription,event.startDate).unitTTCPrice;
+  if(startDateObject.getDay()==0){
+    total*=(100+cus.subscription.service.sundaySurcharge)/100;
+  } else if (startDateObject.getDay()==6) {
+    total*=(100+cus.subscription.service.saturdaySurcharge)/100;
+  }
   return total;
 }
 

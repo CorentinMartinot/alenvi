@@ -5,11 +5,32 @@ const event = {
   subscription: 'asdfghjkl',
 };
 
+const eventList = [
+  {
+    startDate: '2019-04-11T09:00:00',
+    endDate: '2019-04-11T11:30:00',
+    customer: '1234567890',
+    subscription: 'asdfghjkl',
+  },
+  {
+    startDate: '2019-04-14T09:00:00',
+    endDate: '2019-04-14T11:30:00',
+    customer: '1234567890',
+    subscription: 'qwertyui',
+  },
+  {
+    startDate: '2019-04-17T09:00:00',
+    endDate: '2019-04-17T10:30:00',
+    customer: '1234567890',
+    subscription: 'qwertyui',
+  },
+];
+
 const customer = {
   _id: '1234567890',
   identity : { lastname : 'X' },
   subscriptions: [{
-    _id: 'qwertyuio',
+    _id: 'qwertyui',
     service: {
       name: 'Aide a l\'autonomie',
       saturdaySurcharge: 10,
@@ -36,11 +57,9 @@ const customer = {
 
 function diff_minutes(dt2, dt1)
  {
-
   var diff =(dt2.getTime() - dt1.getTime()) / 1000;
   diff /= 60;
   return Math.abs(Math.round(diff));
-
  }
 
 let subscriptionCurentVersion = function(subscription, date){
@@ -70,9 +89,9 @@ let event_price = function(event){
   let chargeCustomer = diff_minutes(startDateObject,endDateObject) / 60 * subscriptionCurentVersion(findSubscription(cus,event.subscription),event.startDate).unitTTCPrice;
 
   if(startDateObject.getDay()==0){  // le dimanche
-    chargeCustomer*=(100+cus.subscription.service.sundaySurcharge)/100;
+    chargeCustomer*=(100+findSubscription(cus,event.subscription).service.sundaySurcharge)/100;
   } else if (startDateObject.getDay()==6) { // le samedi
-    chargeCustomer*=(100+cus.subscription.service.saturdaySurcharge)/100;
+    chargeCustomer*=(100+findSubscription(cus,event.subscription).service.saturdaySurcharge)/100;
   } else { // en semaine   -> ca n'apparait pas dans le JSON mais dans l'énoncé on nous dit que les aides ne sont donné qu'en semaine...
     let fundingPercentage = findFunding(cus, event.subscription);
     if (fundingPercentage != undefined){
@@ -82,7 +101,26 @@ let event_price = function(event){
   return [chargeCustomer,0]; //[chargeCustomer, chargeFunder]
 }
 
+class bill {
+  constructor(chargeCustomer, chargeFunder) {
+    this.chargeCustomer = chargeCustomer;
+    this.chargeFunder = chargeFunder;
+    this.chargeTotal = chargeFunder + chargeCustomer;
+  }
+}
+
+let generateBill = function (eventList) {
+  let bills = []
+  for(var eventIndex in eventList) {
+    charges = event_price(eventList[eventIndex]);
+    var newBill = new bill(charges[0], charges[1]);
+
+    bills.push(newBill);
+  }
+  return bills;
+}
 
 console.log(findSubscription(customer,event.subscription));
 console.log(findFunding(customer, event.subscription));
 console.log(event_price(event));
+console.log(generateBill(eventList));

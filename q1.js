@@ -52,7 +52,7 @@ let event_price = function(event){
     chargeCustomer*=(100+cus.subscription.service.sundaySurcharge)/100;
   } else if (startDateObject.getDay()==6) { // le samedi
     chargeCustomer*=(100+cus.subscription.service.saturdaySurcharge)/100;
-  } else { // en semaine
+  } else { // en semaine   -> ca n'apparait pas dans le JSON mais dans l'énoncé on nous dit que les aides ne sont donné qu'en semaine...
     if (cus.funding!= undefined){
       return [chargeCustomer*(100-cus.funding.percentage)/100, chargeCustomer*cus.funding.percentage/100]
     }

@@ -93,32 +93,41 @@ let event_price = function(event){
   } else if (startDateObject.getDay()==6) { // le samedi
     chargeCustomer*=(100+findSubscription(cus,event.subscription).service.saturdaySurcharge)/100;
   } else { // en semaine   -> ca n'apparait pas dans le JSON mais dans l'énoncé on nous dit que les aides ne sont donné qu'en semaine...
-    let fundingPercentage = findFunding(cus, event.subscription);
-    if (fundingPercentage != undefined){
-      return [chargeCustomer*(100-fundingPercentage.percentage)/100, chargeCustomer*fundingPercentage.percentage/100]
+    let funding = findFunding(cus, event.subscription);
+    if (funding != undefined){
+      return [chargeCustomer*(100-funding.percentage)/100, chargeCustomer*funding.percentage/100, funding.thirdPartyPayer];
     }
   }
-  return [chargeCustomer,0]; //[chargeCustomer, chargeFunder]
+  return [chargeCustomer,0, undefined]; //[chargeCustomer, chargeFunder]
 }
 
+
 class bill {
-  constructor(chargeCustomer, chargeFunder) {
-    this.chargeCustomer = chargeCustomer;
-    this.chargeFunder = chargeFunder;
-    this.chargeTotal = chargeFunder + chargeCustomer;
+  constructor(customer, thirdPartyPayer, charge) {
+    this.customer = customer;
+    this.thirdPartyPayer = thirdPartyPayer;
+    this.charge = charge;
   }
 }
 
 let generateBill = function (eventList) {
-  let bills = []
+  let customerBills = [];
+  let thirdPartyPayerBills = [];
   for(var eventIndex in eventList) {
-    charges = event_price(eventList[eventIndex]);
-    var newBill = new bill(charges[0], charges[1]);
-
-    bills.push(newBill);
+    res = event_price(eventList[eventIndex]);
+    var newCustomerBill = new bill(event.customer, res[2], res[0]);
+    var newThirdPartyPayerBill = new bill(event.customer, res[2], res[1]);
+    if (newCustomerBill.charge > 0){
+      customerBills.push(newCustomerBill);
+    }
+    if (newThirdPartyPayerBill.thirdPartyPayer != undefined) {
+      thirdPartyPayerBills.push(newThirdPartyPayerBill);
+    }
   }
-  return bills;
+  return [customerBills, thirdPartyPayerBills];
 }
+
+
 
 console.log(findSubscription(customer,event.subscription));
 console.log(findFunding(customer, event.subscription));

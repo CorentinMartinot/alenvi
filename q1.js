@@ -1,3 +1,9 @@
+const event = {
+  startDate: '2019-04-11T09:00:00',
+  endDate: '2019-04-11T11:30:00',
+  customer: '1234567890',
+};
+
 const customer = {
   _id: '1234567890',
   identity : { lastname : 'X' },
@@ -13,6 +19,15 @@ const customer = {
   },
 };
 
+function diff_minutes(dt2, dt1)
+ {
+
+  var diff =(dt2.getTime() - dt1.getTime()) / 1000;
+  diff /= 60;
+  return Math.abs(Math.round(diff));
+
+ }
+
 let subscriptionCurentVersion = function(subscription, date){
   const sortedVersions = subscription.versions.slice().sort((a, b) => b.date - a.date) // copie le tableau des versions, le trie selon la date et le stock dans un autre tableau; le tableau original n'est pas modifié (slice)
   let i = sortedVersions.length - 1
@@ -25,5 +40,14 @@ let subscriptionCurentVersion = function(subscription, date){
   }
 };
 
+let event_price = function(event){
+  const cus = customer; //dans un cas classique on interrogerait une BD pour avoir les infos du bon beneficiaire 'event.customer', ici on va simplement chercher la variable globale 'customer'
+  let startDateObject = new Date(event.startDate);
+  let endDateObject = new Date(event.endDate);
+  let total = diff_minutes(startDateObject,endDateObject) / 60 * subscriptionCurentVersion(cus.subscription,event.startDate).unitTTCPrice;
+  return total;
+}
+
 console.log(subscriptionCurentVersion(customer.subscription,'2019-03-15T00:00:00'));
 console.log(subscriptionCurentVersion(customer.subscription,'2019-05-15T00:00:00'));
+console.log(event_price(event));
